@@ -2,6 +2,13 @@
   <section>
     <PageHeader eyebrow="Budget" title="采购预算看板" />
 
+    <transition name="fade">
+      <div v-if="toast.show" class="toast" :class="toast.type">
+        <span class="toast-icon">{{ toast.type === 'success' ? '✓' : '!' }}</span>
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+    </transition>
+
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
       <p>数据加载中...</p>
@@ -143,6 +150,22 @@ const budgets = ref([])
 const newBudget = reactive({ month: '', amount: 0 })
 const loading = ref(false)
 const loadError = ref('')
+const toast = reactive({
+  show: false,
+  type: 'success',
+  message: ''
+})
+let toastTimer = null
+
+function showToast(type, message) {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.show = true
+  toast.type = type
+  toast.message = message
+  toastTimer = setTimeout(() => {
+    toast.show = false
+  }, 3000)
+}
 
 const totalPlanned = computed(() =>
   dashboard.value.reduce((sum, item) => sum + item.plannedAmount, 0)
@@ -202,17 +225,33 @@ function barWidth(amount) {
 }
 
 async function addBudget() {
-  if (!newBudget.month || !newBudget.amount) return
-  await budgetsApi.create({ month: newBudget.month, amount: newBudget.amount })
-  Object.assign(newBudget, { month: '', amount: 0 })
-  await loadData()
+  if (!newBudget.month || !newBudget.amount) {
+    showToast('error', '请选择月份并填写预算金额')
+    return
+  }
+  try {
+    await budgetsApi.create({ month: newBudget.month, amount: newBudget.amount })
+    Object.assign(newBudget, { month: '', amount: 0 })
+    await loadData()
+    showToast('success', '预算添加成功')
+  } catch (err) {
+    showToast('error', '预算添加失败：' + (err.message || '请稍后重试'))
+  }
 }
 
 async function updateBudget(row, value) {
   const amount = parseFloat(value)
-  if (isNaN(amount) || amount < 0) return
-  await budgetsApi.update(row.id, { amount })
-  await loadData()
+  if (isNaN(amount) || amount < 0) {
+    showToast('error', '请输入有效的预算金额')
+    return
+  }
+  try {
+    await budgetsApi.update(row.id, { amount })
+    await loadData()
+    showToast('success', '预算修改成功')
+  } catch (err) {
+    showToast('error', '预算修改失败：' + (err.message || '请稍后重试'))
+  }
 }
 
 async function loadData() {

@@ -285,6 +285,65 @@ th {
   color: #a72f25;
 }
 
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+}
+
+.toast.success {
+  background: #dff5e7;
+  color: #17713d;
+  border: 1px solid #b8e6c8;
+}
+
+.toast.error {
+  background: #ffe4e2;
+  color: #a72f25;
+  border: 1px solid #f5c2be;
+}
+
+.toast-icon {
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.toast.success .toast-icon {
+  background: #256f4a;
+  color: #fff;
+}
+
+.toast.error .toast-icon {
+  background: #a72f25;
+  color: #fff;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -10px);
+}
+
 .loading-state,
 .error-state,
 .empty-state {
