@@ -205,7 +205,8 @@ const existingMonths = computed(() => new Set(budgets.value.map((b) => b.month))
 
 const availableMonths = computed(() => {
   const months = []
-  for (let y = 2026; y <= 2026; y++) {
+  const currentYear = new Date().getFullYear()
+  for (let y = currentYear - 1; y <= currentYear + 2; y++) {
     for (let m = 1; m <= 12; m++) {
       const key = `${y}-${String(m).padStart(2, '0')}`
       if (!existingMonths.value.has(key)) months.push(key)
@@ -232,8 +233,12 @@ async function addBudget() {
   try {
     await budgetsApi.create({ month: newBudget.month, amount: newBudget.amount })
     Object.assign(newBudget, { month: '', amount: 0 })
-    await loadData()
     showToast('success', '预算添加成功')
+    try {
+      await loadData(false)
+    } catch (e) {
+      showToast('error', '数据刷新失败，请手动刷新页面')
+    }
   } catch (err) {
     showToast('error', '预算添加失败：' + (err.message || '请稍后重试'))
   }
@@ -247,14 +252,18 @@ async function updateBudget(row, value) {
   }
   try {
     await budgetsApi.update(row.id, { amount })
-    await loadData()
     showToast('success', '预算修改成功')
+    try {
+      await loadData(false)
+    } catch (e) {
+      showToast('error', '数据刷新失败，请手动刷新页面')
+    }
   } catch (err) {
     showToast('error', '预算修改失败：' + (err.message || '请稍后重试'))
   }
 }
 
-async function loadData() {
+async function loadData(showFullErrorOnFail = true) {
   loading.value = true
   loadError.value = ''
   try {
@@ -265,7 +274,11 @@ async function loadData() {
     dashboard.value = dashboardRes.data
     budgets.value = budgetsRes.data
   } catch (err) {
-    loadError.value = err.message || '网络请求失败，请检查后端服务是否正常运行'
+    if (showFullErrorOnFail) {
+      loadError.value = err.message || '网络请求失败，请检查后端服务是否正常运行'
+    } else {
+      throw err
+    }
   } finally {
     loading.value = false
   }
