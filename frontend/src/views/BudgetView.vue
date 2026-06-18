@@ -2,72 +2,95 @@
   <section>
     <PageHeader eyebrow="Budget" title="采购预算看板" />
 
-    <div class="metrics-grid">
-      <article class="metric">
-        <span>年度预算总额</span>
-        <strong>¥{{ totalPlanned.toLocaleString() }}</strong>
-      </article>
-      <article class="metric">
-        <span>已下单金额</span>
-        <strong>¥{{ totalOrdered.toLocaleString() }}</strong>
-      </article>
-      <article class="metric">
-        <span>超预算月份</span>
-        <strong class="error-text">{{ overBudgetCount }}</strong>
-      </article>
-      <article class="metric">
-        <span>整体执行率</span>
-        <strong>{{ overallUsageRate }}%</strong>
-      </article>
+    <div v-if="loading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>数据加载中...</p>
     </div>
 
-    <div class="budget-chart">
-      <div class="chart-header">
-        <h2>月度预算执行概览</h2>
-        <div class="chart-legend">
-          <span class="legend-item"><i class="legend-dot planned"></i>预计支出</span>
-          <span class="legend-item"><i class="legend-dot ordered"></i>已下单金额</span>
-          <span class="legend-item"><i class="legend-dot over"></i>超预算</span>
-        </div>
+    <div v-else-if="loadError" class="error-state">
+      <p class="error-icon">!</p>
+      <p class="error-title">数据加载失败</p>
+      <p class="error-desc">{{ loadError }}</p>
+      <button class="primary-btn" @click="loadData">重新加载</button>
+    </div>
+
+    <template v-else>
+      <div class="metrics-grid">
+        <article class="metric">
+          <span>年度预算总额</span>
+          <strong>¥{{ totalPlanned.toLocaleString() }}</strong>
+        </article>
+        <article class="metric">
+          <span>已下单金额</span>
+          <strong>¥{{ totalOrdered.toLocaleString() }}</strong>
+        </article>
+        <article class="metric">
+          <span>超预算月份</span>
+          <strong class="error-text">{{ overBudgetCount }}</strong>
+        </article>
+        <article class="metric">
+          <span>整体执行率</span>
+          <strong>{{ overallUsageRate }}%</strong>
+        </article>
       </div>
-      <div class="chart-body">
-        <div
-          v-for="item in dashboard"
-          :key="item.month"
-          class="chart-row"
-          :class="{ 'over-budget': item.overBudget }"
-        >
-          <div class="row-label">{{ formatMonth(item.month) }}</div>
-          <div class="row-bars">
-            <div class="bar-track">
-              <div
-                class="bar planned-bar"
-                :style="{ width: barWidth(item.plannedAmount) }"
-              ></div>
-              <div
-                class="bar ordered-bar"
-                :class="{ 'bar-over': item.overBudget }"
-                :style="{ width: barWidth(item.orderedAmount) }"
-              ></div>
+
+      <div class="budget-chart">
+        <div class="chart-header">
+          <h2>月度预算执行概览</h2>
+          <div class="chart-legend">
+            <span class="legend-item"><i class="legend-dot planned"></i>预计支出</span>
+            <span class="legend-item"><i class="legend-dot ordered"></i>已下单金额</span>
+            <span class="legend-item"><i class="legend-dot over"></i>超预算</span>
+          </div>
+        </div>
+        <div v-if="dashboard.length === 0" class="empty-state">
+          <p>暂无预算数据</p>
+        </div>
+        <div v-else class="chart-body">
+          <div
+            v-for="item in dashboard"
+            :key="item.month"
+            class="chart-row"
+            :class="{ 'over-budget': item.overBudget }"
+          >
+            <div class="row-label">{{ formatMonth(item.month) }}</div>
+            <div class="row-bars">
+              <div class="bar-line">
+                <span class="bar-label">预计</span>
+                <div class="bar-track">
+                  <div
+                    class="bar planned-bar"
+                    :style="{ width: barWidth(item.plannedAmount) }"
+                  ></div>
+                </div>
+                <span class="bar-value val-planned">¥{{ item.plannedAmount.toLocaleString() }}</span>
+              </div>
+              <div class="bar-line">
+                <span class="bar-label">已下单</span>
+                <div class="bar-track">
+                  <div
+                    class="bar ordered-bar"
+                    :class="{ 'bar-over': item.overBudget }"
+                    :style="{ width: barWidth(item.orderedAmount) }"
+                  ></div>
+                </div>
+                <span class="bar-value" :class="{ 'error-text': item.overBudget }">
+                  ¥{{ item.orderedAmount.toLocaleString() }}
+                </span>
+              </div>
+            </div>
+            <div class="row-status">
+              <span v-if="item.overBudget" class="badge danger">
+                超预算 +¥{{ item.overAmount.toLocaleString() }}
+              </span>
+              <span v-else class="badge success">
+                {{ item.usageRate }}%
+              </span>
             </div>
           </div>
-          <div class="row-values">
-            <span class="val-planned">¥{{ item.plannedAmount.toLocaleString() }}</span>
-            <span class="val-ordered" :class="{ 'error-text': item.overBudget }">
-              ¥{{ item.orderedAmount.toLocaleString() }}
-            </span>
-          </div>
-          <div class="row-status">
-            <span v-if="item.overBudget" class="badge danger">
-              超预算 +¥{{ item.overAmount.toLocaleString() }}
-            </span>
-            <span v-else class="badge success">
-              {{ item.usageRate }}%
-            </span>
-          </div>
         </div>
       </div>
-    </div>
+    </template>
 
     <div class="content-grid">
       <section class="panel">
@@ -118,6 +141,8 @@ import PageHeader from '../components/PageHeader.vue'
 const dashboard = ref([])
 const budgets = ref([])
 const newBudget = reactive({ month: '', amount: 0 })
+const loading = ref(false)
+const loadError = ref('')
 
 const totalPlanned = computed(() =>
   dashboard.value.reduce((sum, item) => sum + item.plannedAmount, 0)
@@ -191,12 +216,20 @@ async function updateBudget(row, value) {
 }
 
 async function loadData() {
-  const [dashboardRes, budgetsRes] = await Promise.all([
-    budgetsApi.dashboard(),
-    budgetsApi.list()
-  ])
-  dashboard.value = dashboardRes.data
-  budgets.value = budgetsRes.data
+  loading.value = true
+  loadError.value = ''
+  try {
+    const [dashboardRes, budgetsRes] = await Promise.all([
+      budgetsApi.dashboard(),
+      budgetsApi.list()
+    ])
+    dashboard.value = dashboardRes.data
+    budgets.value = budgetsRes.data
+  } catch (err) {
+    loadError.value = err.message || '网络请求失败，请检查后端服务是否正常运行'
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(loadData)

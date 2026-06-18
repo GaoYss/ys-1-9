@@ -285,12 +285,86 @@ th {
   color: #a72f25;
 }
 
+.loading-state,
+.error-state,
+.empty-state {
+  border: 1px solid #dde5dc;
+  border-radius: 8px;
+  background: #fff;
+  padding: 48px 24px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.loading-state p,
+.error-state p,
+.empty-state p {
+  margin: 0;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e7eee8;
+  border-top-color: #256f4a;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state p {
+  color: #6b786f;
+  font-size: 14px;
+}
+
+.error-state .error-icon {
+  width: 48px;
+  height: 48px;
+  line-height: 48px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #ffe4e2;
+  color: #a72f25;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.error-state .error-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #a72f25;
+  margin-bottom: 6px;
+}
+
+.error-state .error-desc {
+  font-size: 13px;
+  color: #6b786f;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  color: #7d8981;
+  font-size: 14px;
+}
+
 .budget-chart {
   border: 1px solid #dde5dc;
   border-radius: 8px;
   background: #fff;
   padding: 18px;
   margin-bottom: 18px;
+}
+
+.budget-chart .empty-state {
+  border: none;
+  padding: 32px 24px;
+  margin-bottom: 0;
 }
 
 .chart-header {
@@ -339,15 +413,14 @@ th {
 
 .chart-body {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .chart-row {
   display: grid;
-  grid-template-columns: 90px 1fr 200px 150px;
-  align-items: center;
+  grid-template-columns: 90px 1fr 140px;
   gap: 14px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 6px;
   transition: background 0.15s;
 }
@@ -367,17 +440,33 @@ th {
 .row-label {
   font-weight: 600;
   font-size: 14px;
+  align-self: center;
 }
 
 .row-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   min-width: 0;
+}
+
+.bar-line {
+  display: grid;
+  grid-template-columns: 48px 1fr 90px;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-label {
+  font-size: 12px;
+  color: #6b786f;
 }
 
 .bar-track {
   position: relative;
-  height: 22px;
+  height: 16px;
   background: #f0f3f0;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
@@ -386,42 +475,37 @@ th {
   top: 0;
   left: 0;
   height: 100%;
-  border-radius: 4px;
+  border-radius: 3px;
   transition: width 0.4s ease;
 }
 
 .planned-bar {
   background: #c6dece;
-  z-index: 1;
 }
 
 .ordered-bar {
   background: #256f4a;
-  z-index: 2;
-  opacity: 0.85;
 }
 
 .ordered-bar.bar-over {
   background: #e05d45;
 }
 
-.row-values {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  font-size: 13px;
+.bar-value {
+  font-size: 12px;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
 }
 
-.val-planned {
+.bar-value.val-planned {
   color: #6b786f;
-}
-
-.val-ordered {
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .row-status {
   text-align: right;
+  align-self: center;
 }
 
 .budget-form-row {
@@ -493,9 +577,13 @@ th {
     gap: 8px;
   }
 
-  .row-values,
   .row-status {
     grid-column: span 2;
+    text-align: left;
+  }
+
+  .bar-line {
+    grid-template-columns: 42px 1fr 78px;
   }
 
   .budget-form-row {
