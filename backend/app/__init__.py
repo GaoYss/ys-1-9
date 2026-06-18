@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from .config import Config
 from .extensions import db, migrate
+from .routes.budgets import budgets_bp
 from .routes.inventory import inventory_bp
 from .routes.orders import orders_bp
 from .routes.records import records_bp
@@ -19,6 +20,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
 
+    app.register_blueprint(budgets_bp, url_prefix="/api/budgets")
     app.register_blueprint(inventory_bp, url_prefix="/api/inventory")
     app.register_blueprint(orders_bp, url_prefix="/api/orders")
     app.register_blueprint(suppliers_bp, url_prefix="/api/suppliers")

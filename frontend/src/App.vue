@@ -23,6 +23,7 @@
 <script setup>
 const navItems = [
   { path: '/', label: '工作台' },
+  { path: '/budget', label: '采购预算' },
   { path: '/inventory', label: '库存预警' },
   { path: '/orders', label: '采购订单' },
   { path: '/suppliers', label: '供应商' },
